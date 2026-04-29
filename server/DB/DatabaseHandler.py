@@ -15,6 +15,7 @@ class DatabaseHandler():
 
     def createAccount(self, data):
         try:
+            # Добавляем DeviceID и IP для отслеживания устройства
             self.cursor.execute("INSERT INTO main (ID, Token, Data) VALUES (?, ?, ?)", (data["ID"][1], data["Token"], json.dumps(data, ensure_ascii=0)))
             self.conn.commit()
         except Exception:
@@ -88,9 +89,24 @@ class DatabaseHandler():
     def playerExist(self, loginToken, loginID):
         try:
             if loginID[1] in self.getAll():
-                if loginToken != self.getPlayerEntry(loginID)[1]:
+                entry = self.getPlayerEntry(loginID)
+                if entry is None:
+                    return False
+                # Проверяем токен - если не совпадает, значит устройство другое
+                if loginToken != entry[1]:
+                    print(f"[DatabaseHandler] Токен не совпадает для игрока {loginID}")
                     return False
                 return True
             return False
+        except Exception:
+            print(traceback.format_exc())
+            return False
+
+    def updatePlayerToken(self, plrId, newToken):
+        """Обновляет токен игрока при входе с нового устройства"""
+        try:
+            self.cursor.execute("UPDATE main SET Token=? WHERE ID=?", (newToken, plrId[1]))
+            self.conn.commit()
+            print(f"[DatabaseHandler] Токен обновлен для игрока {plrId}")
         except Exception:
             print(traceback.format_exc())

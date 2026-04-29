@@ -14,6 +14,11 @@ class Player:
     Namecolor = 0
     Region = "RU"
     ContentCreator = "BSL-V55"
+    
+    # Device information for account tracking
+    DeviceID = ""
+    AndroidID = ""
+    LastIP = ""
 
     Coins = 99999
     Gems = 99999
@@ -152,6 +157,9 @@ class Player:
             'OwnedThumbnails': self.OwnedThumbnails,
             'OwnedBrawlers': self.OwnedBrawlers,
             'OwnedSkins': self.OwnedSkins,
+            'DeviceID': self.DeviceID,
+            'AndroidID': self.AndroidID,
+            'LastIP': self.LastIP,
         }
         return DBData
 
