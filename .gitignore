@@ -1,14 +1,1 @@
-```gitignore
-# Python compiled files
-*.pyc
-__pycache__/
-
-# Logs and temporary files
-*.log
-*.tmp
-
-# Environment files
-.env
-.env.local
-*.env.*
-```
+Nothing needs to be added to .gitignore since the only change is a Python source file modification, which doesn't require any new ignore rules.
