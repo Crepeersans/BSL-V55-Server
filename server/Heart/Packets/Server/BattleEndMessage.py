@@ -1,5 +1,6 @@
 """
 BattleEndMessage - Сообщение окончания битвы для BSL-V55 Server
+СПОСОБ 3: Отправка результатов битвы через BattleEndMessage (ID 24115)
 Отправляется сервером клиенту после окончания матча с результатами
 """
 from Heart.Packets.PiranhaMessage import PiranhaMessage
@@ -23,6 +24,7 @@ class BattleEndMessage(PiranhaMessage):
         - BrawlerID: ID бойца (для 3v3)
         - Players: список игроков с их результатами
         """
+        print("=== СПОСОБ 3: BattleEndMessage (24115) ===")
         # Пишем основную информацию о матче
         self.writeVInt(fields.get('GameMode', 0))
         self.writeVInt(fields.get('Result', 0))
@@ -69,6 +71,7 @@ class BattleEndMessage(PiranhaMessage):
     def send_battle_result(client, game_mode, result, rank, players_data):
         """
         Статический метод для отправки результатов битвы
+        СПОСОБ 3
         
         Args:
             client: клиентское соединение
@@ -77,10 +80,11 @@ class BattleEndMessage(PiranhaMessage):
             rank: место в матче (int, 1-10)
             players_data: список словарей с данными игроков
         """
+        print("=== СПОСОБ 3: send_battle_result ===")
         player = client.player if hasattr(client, 'player') else None
         
         if player is None:
-            print("[BattleEndMessage] Ошибка: игрок не найден")
+            print("[СПОСОБ 3] Ошибка: игрок не найден")
             return
         
         # Определяем режим для TrophySystem
@@ -108,7 +112,7 @@ class BattleEndMessage(PiranhaMessage):
         else:
             result_str = 'loss'
         
-        print(f"[BattleEndMessage] Режим: {mode}, Результат: {result_str}, Ранг: {rank}")
+        print(f"[СПОСОБ 3] Режим: {mode}, Результат: {result_str}, Ранг: {rank}")
         
         # Обрабатываем каждого игрока
         processed_players = []
@@ -138,12 +142,12 @@ class BattleEndMessage(PiranhaMessage):
                         'BrawlerTrophyChange': trophy_data.get('change', 0)
                     }
                     
-                    print(f"[BattleEndMessage] Игрок {account_id}: {trophy_data['change']} кубков ({trophy_data['old_trophies']} -> {trophy_data['new_trophies']})")
+                    print(f"[СПОСОБ 3] Игрок {account_id}: {trophy_data['change']} кубков ({trophy_data['old_trophies']} -> {trophy_data['new_trophies']})")
                     
                     processed_players.append(processed_player)
                     
                 except Exception as e:
-                    print(f"[BattleEndMessage] Ошибка при расчете кубков: {e}")
+                    print(f"[СПОСОБ 3] Ошибка при расчете кубков: {e}")
                     import traceback
                     traceback.print_exc()
             else:
@@ -174,6 +178,7 @@ class BattleEndMessage(PiranhaMessage):
             'Rank': rank,
             'Players': processed_players
         })
+        print(f"[СПОСОБ 3] Отправлено BattleEndMessage (24115)")
         
         # Также отправляем команду обновления кубков через AvailableServerCommandMessage
         # Это нужно для обновления UI
@@ -194,6 +199,7 @@ class BattleEndMessage(PiranhaMessage):
             'Socket': client,
             'Command': command_fields['Command']
         })
+        print(f"[СПОСОБ 3] Отправлено AvailableServerCommandMessage (24111)")
 
     def execute(message, calling_instance, fields):
         # Это сообщение только для отправки сервером, выполнение не требуется

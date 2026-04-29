@@ -1,6 +1,7 @@
 """
 AskForBattleEndMessage - Сообщение от клиента об окончании битвы
 Клиент отправляет это сообщение когда матч заканчивается
+СПОСОБ 1: Обработка через AskForBattleEndMessage (ID 14166)
 """
 from Heart.Packets.PiranhaMessage import PiranhaMessage
 from Heart.Messaging import Messaging
@@ -98,13 +99,14 @@ class AskForBattleEndMessage(PiranhaMessage):
 
     def execute(message, calling_instance, fields):
         """
-        Обрабатывает окончание битвы и отправляет результат клиенту
+        СПОСОБ 1: Обработка через AskForBattleEndMessage
         """
+        print("=== СПОСОБ 1: AskForBattleEndMessage (14166) ===")
         client = calling_instance.client
         player = client.player if hasattr(client, 'player') else None
         
         if player is None:
-            print("[AskForBattleEndMessage] Ошибка: игрок не найден")
+            print("[СПОСОБ 1] Ошибка: игрок не найден")
             return
         
         game_mode = fields.get('GameMode', 0)
@@ -137,7 +139,7 @@ class AskForBattleEndMessage(PiranhaMessage):
         
         mode = mode_map.get(game_mode, '3v3')
         
-        print(f"[AskForBattleEndMessage] Режим: {mode}, Результат: {result}, Ранг: {rank}, Боец: {brawler_id}")
+        print(f"[СПОСОБ 1] Режим: {mode}, Результат: {result}, Ранг: {rank}, Боец: {brawler_id}")
         
         try:
             from Heart.Logic.TrophySystem import TrophySystem
@@ -152,8 +154,8 @@ class AskForBattleEndMessage(PiranhaMessage):
                 brawler_id=brawler_id if mode == '3v3' else None
             )
             
-            print(f"[AskForBattleEndMessage] Изменение кубков: {trophy_data['change']}")
-            print(f"[AskForBattleEndMessage] Старые кубки: {trophy_data['old_trophies']}, Новые кубки: {trophy_data['new_trophies']}")
+            print(f"[СПОСОБ 1] Изменение кубков: {trophy_data['change']}")
+            print(f"[СПОСОБ 1] Старые кубки: {trophy_data['old_trophies']}, Новые кубки: {trophy_data['new_trophies']}")
             
             # Обновляем кубки игрока
             player.Trophies = trophy_data['new_trophies']
@@ -188,7 +190,7 @@ class AskForBattleEndMessage(PiranhaMessage):
             }
             
             Messaging.sendMessage(24115, battle_end_data)
-            print(f"[AskForBattleEndMessage] Отправлено BattleEndMessage (24115)")
+            print(f"[СПОСОБ 1] Отправлено BattleEndMessage (24115)")
             
             # Отправляем AvailableServerCommandMessage с командой обновления (ID 24111)
             command_data = {
@@ -204,16 +206,16 @@ class AskForBattleEndMessage(PiranhaMessage):
             }
             
             Messaging.sendMessage(24111, command_data)
-            print(f"[AskForBattleEndMessage] Отправлено AvailableServerCommandMessage (24111) с CommandType=600")
+            print(f"[СПОСОБ 1] Отправлено AvailableServerCommandMessage (24111) с CommandType=600")
             
             # Отправляем LobbyInfoMessage для обновления UI лобби (ID 23457)
             Messaging.sendMessage(23457, {'Socket': client})
-            print(f"[AskForBattleEndMessage] Отправлено LobbyInfoMessage (23457)")
+            print(f"[СПОСОБ 1] Отправлено LobbyInfoMessage (23457)")
             
-            print(f"[AskForBattleEndMessage] Битва завершена успешно!")
+            print(f"[СПОСОБ 1] Битва завершена успешно!")
             
         except Exception as e:
-            print(f"[AskForBattleEndMessage] Ошибка при обработке: {e}")
+            print(f"[СПОСОБ 1] Ошибка при обработке: {e}")
             import traceback
             traceback.print_exc()
 
