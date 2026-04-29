@@ -50,31 +50,45 @@ class LoginMessage(PiranhaMessage):
             # Сохраняем DeviceID и AndroidID в данных игрока
             calling_instance.player.DeviceID = fields.get("IMEI", "") or fields.get("AndroidID", "")
             calling_instance.player.AndroidID = fields.get("AndroidID", "")
+            device_id = calling_instance.player.DeviceID
             
-            if db_instance.playerExist(fields["PassToken"], fields["AccountID"]):
+            # Проверяем существование игрока с учетом DeviceID
+            if db_instance.playerExist(fields["PassToken"], fields["AccountID"], device_id):
                 # Игрок существует - загружаем данные
-                player_data = json.loads(db_instance.getPlayerEntry(fields["AccountID"])[2])
-                db_instance.loadAccount(calling_instance.player, fields["AccountID"])
+                player_entry = db_instance.getPlayerEntry(fields["AccountID"])
                 
-                # Обновляем токен если устройство то же самое
-                db_instance.updatePlayerToken(fields["AccountID"], fields["PassToken"])
-                print(f"[LoginMessage] Игрок {fields['AccountID']} успешно загружен")
+                # Если не нашли по AccountID, пробуем найти по DeviceID
+                if player_entry is None and device_id:
+                    player_entry = db_instance.getAccountByDevice(device_id)
+                
+                if player_entry:
+                    player_data = json.loads(player_entry[2])
+                    # Обновляем AccountID на существующий
+                    fields["AccountID"] = [player_data["ID"][0], player_data["ID"][1]]
+                    calling_instance.player.ID = fields["AccountID"]
+                    db_instance.loadAccount(calling_instance.player, fields["AccountID"])
+                    
+                    # Обновляем токен
+                    db_instance.updatePlayerToken(fields["AccountID"], fields["PassToken"])
+                    print(f"[LoginMessage] Игрок {fields['AccountID']} успешно загружен (устройство: {device_id})")
+                else:
+                    # Создаем новый аккаунт
+                    account_data = calling_instance.player.getDataTemplate(fields["AccountID"][0], fields["AccountID"][1], fields["PassToken"])
+                    account_data["DeviceID"] = device_id
+                    account_data["AndroidID"] = calling_instance.player.AndroidID
+                    account_data["LastIP"] = calling_instance.client.address[0] if hasattr(calling_instance.client, 'address') else ""
+                    
+                    db_instance.createAccount(account_data)
+                    print(f"[LoginMessage] Создан новый аккаунт для устройства {device_id}")
             else:
-                # Проверяем есть ли аккаунт с таким DeviceID
-                existing_entry = None
-                if calling_instance.player.DeviceID:
-                    # Поиск по DeviceID (можно добавить в БД)
-                    pass
-                
                 # Создаем новый аккаунт
                 account_data = calling_instance.player.getDataTemplate(fields["AccountID"][0], fields["AccountID"][1], fields["PassToken"])
-                # Добавляем информацию об устройстве
-                account_data["DeviceID"] = calling_instance.player.DeviceID
+                account_data["DeviceID"] = device_id
                 account_data["AndroidID"] = calling_instance.player.AndroidID
                 account_data["LastIP"] = calling_instance.client.address[0] if hasattr(calling_instance.client, 'address') else ""
                 
                 db_instance.createAccount(account_data)
-                print(f"[LoginMessage] Создан новый аккаунт для устройства {calling_instance.player.DeviceID}")
+                print(f"[LoginMessage] Создан новый аккаунт для устройства {device_id}")
                 
             ClientsManager.AddPlayer(calling_instance.player.ID, calling_instance.client)
             Messaging.sendMessage(20104, fields, calling_instance.player)
