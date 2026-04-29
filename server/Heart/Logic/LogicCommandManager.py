@@ -2,6 +2,7 @@ from Heart.Commands.Client.PurchaseOfferCommand import PurchaseOfferCommand
 from Heart.Commands.Server.ChangeAvatarNameCommand import ChangeAvatarNameCommand
 from Heart.Commands.Client.SetPlayerThumbnailCommand import SetPlayerThumbnailCommand
 from Heart.Commands.Client.SetPlayerNameColorCommand import SetPlayerNameColorCommand
+from Heart.Commands.Client.EndBattleCommand import EndBattleCommand
 
 class LogicCommandManager:
     commandsList = {
@@ -68,7 +69,8 @@ class LogicCommandManager:
         540: 'PurchaseChallengeLivesCommand',
         541: 'ClearESportsHubNotificationCommand',
         542: 'SelectGroupSkinCommand',
-        571: 'OpenRandomCommand'
+        571: 'OpenRandomCommand',
+        600: EndBattleCommand,  # Команда окончания битвы с расчетом кубков
     }
 
     def getCommandsName(commandType):
