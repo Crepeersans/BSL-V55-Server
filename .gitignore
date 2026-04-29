@@ -1,1 +1,14 @@
-(empty)
+```gitignore
+# Python compiled files
+*.pyc
+__pycache__/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Environment files
+.env
+.env.local
+*.env.*
+```

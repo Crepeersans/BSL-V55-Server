@@ -91,7 +91,7 @@ class DatabaseHandler():
         except Exception:
             print(traceback.format_exc())
 
-    def playerExist(self, loginToken, loginID):
+    def playerExist(self, loginToken, loginID, deviceID=None):
         try:
             if loginID[1] in self.getAll():
                 entry = self.getPlayerEntry(loginID)
@@ -100,12 +100,54 @@ class DatabaseHandler():
                 # Проверяем токен - если не совпадает, значит устройство другое
                 if loginToken != entry[1]:
                     print(f"[DatabaseHandler] Токен не совпадает для игрока {loginID}")
+                    # Если передан DeviceID, пробуем найти аккаунт по устройству
+                    if deviceID:
+                        return self.playerExistByDevice(deviceID)
                     return False
                 return True
+            # Игрок не найден по ID, пробуем найти по DeviceID
+            elif deviceID:
+                return self.playerExistByDevice(deviceID)
             return False
         except Exception:
             print(traceback.format_exc())
             return False
+    
+    def playerExistByDevice(self, deviceID):
+        """Проверяет существование аккаунта по DeviceID"""
+        try:
+            self.cursor.execute("SELECT * from main")
+            all_players = self.cursor.fetchall()
+            for player_data in all_players:
+                try:
+                    data = json.loads(player_data[2])
+                    if data.get("DeviceID") == deviceID or data.get("AndroidID") == deviceID:
+                        print(f"[DatabaseHandler] Найден аккаунт по устройству: {deviceID}")
+                        return True
+                except:
+                    continue
+            return False
+        except Exception:
+            print(traceback.format_exc())
+            return False
+    
+    def getAccountByDevice(self, deviceID):
+        """Получает данные аккаунта по DeviceID"""
+        try:
+            self.cursor.execute("SELECT * from main")
+            all_players = self.cursor.fetchall()
+            for player_data in all_players:
+                try:
+                    data = json.loads(player_data[2])
+                    if data.get("DeviceID") == deviceID or data.get("AndroidID") == deviceID:
+                        print(f"[DatabaseHandler] Загрузка аккаунта по устройству: {deviceID}")
+                        return player_data
+                except:
+                    continue
+            return None
+        except Exception:
+            print(traceback.format_exc())
+            return None
 
     def updatePlayerToken(self, plrId, newToken):
         """Обновляет токен игрока при входе с нового устройства"""

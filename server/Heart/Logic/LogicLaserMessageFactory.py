@@ -6,6 +6,7 @@ from Heart.Packets.Client.GoHomeFromOfflinePractiseMessage import GoHomeFromOffl
 from Heart.Packets.Client.GoHomeMessage import GoHomeMessage
 from Heart.Packets.Client.GetPlayerProfileMessage import GetPlayerProfileMessage
 from Heart.Packets.Client.KeepAliveMessage import KeepAliveMessage
+from Heart.Packets.Client.AskForBattleEndMessage import AskForBattleEndMessage
 from Heart.Packets.Server.LoginFailedMessage import LoginFailedMessage
 from Heart.Packets.Server.LoginOkMessage import LoginOkMessage
 from Heart.Packets.Server.OutOfSyncMessage import OutOfSyncMessage
@@ -27,6 +28,7 @@ class LogicLaserMessageFactory:
         10212: ChangeAvatarNameMessage,
         14101: GoHomeMessage,
         14102: EndClientTurnMessage,
+        14166: AskForBattleEndMessage,  # Сообщение окончания битвы от клиента
         15081: GetPlayerProfileMessage,
         17750: GoHomeFromOfflinePractiseMessage,
         20100: ServerHelloMessage,
