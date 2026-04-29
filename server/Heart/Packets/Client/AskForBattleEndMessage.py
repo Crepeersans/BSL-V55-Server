@@ -204,7 +204,7 @@ class AskForBattleEndMessage(PiranhaMessage):
             }
             
             Messaging.sendMessage(24111, command_data)
-            print(f"[AskForBattleEndMessage] Отправлено AvailableServerCommandMessage (24111)")
+            print(f"[AskForBattleEndMessage] Отправлено AvailableServerCommandMessage (24111) с CommandType=600")
             
             # Отправляем LobbyInfoMessage для обновления UI лобби (ID 23457)
             Messaging.sendMessage(23457, {'Socket': client})
