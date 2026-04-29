@@ -67,8 +67,6 @@ class EndBattleCommand(LogicCommand):
             result = 'loss'
         
         # Определяем режим для TrophySystem
-        # GameMode mapping (примерный, нужно уточнить по серверу)
-        # 0 = Gem Grab (3v3), 1 = Showdown (Solo), 2 = Duo Showdown (Duo), и т.д.
         mode_map = {
             0: '3v3',   # Gem Grab
             1: '3v3',   # Smash & Grab
@@ -88,6 +86,8 @@ class EndBattleCommand(LogicCommand):
         print(f"[EndBattleCommand] Режим: {mode}, Результат: {result}, Ранг: {rank}, Боец: {brawler_id}")
         
         try:
+            from DB.DatabaseHandler import DatabaseHandler
+            
             # Применяем изменение кубков
             trophy_data = TrophySystem.apply_trophy_change(
                 player, 
@@ -100,13 +100,25 @@ class EndBattleCommand(LogicCommand):
             print(f"[EndBattleCommand] Изменение кубков: {trophy_data['change']}")
             print(f"[EndBattleCommand] Старые кубки: {trophy_data['old_trophies']}, Новые кубки: {trophy_data['new_trophies']}")
             
+            # Обновляем кубки игрока
+            player.Trophies = trophy_data['new_trophies']
+            if player.Trophies > player.HighestTrophies:
+                player.HighestTrophies = player.Trophies
+            
+            # Сохраняем данные игрока в базу
+            db_instance = DatabaseHandler()
+            player_data = player.getDataTemplate(player.ID[0], player.ID[1], player.Token)
+            player_data["Trophies"] = player.Trophies
+            player_data["HighestTrophies"] = player.HighestTrophies
+            player_data["OwnedBrawlers"] = player.OwnedBrawlers
+            db_instance.updatePlayerData(player_data, type('', (), {'player': player})())
+            
             # Сохраняем результат для отправки клиенту
             fields['TrophyChange'] = trophy_data['change']
             fields['OldTrophies'] = trophy_data['old_trophies']
             fields['NewTrophies'] = trophy_data['new_trophies']
             
-            # Отправляем команду обновления кубков клиенту
-            # Это можно сделать через AvailableServerCommandMessage
+            print(f"[EndBattleCommand] Битва завершена успешно!")
             
         except Exception as e:
             print(f"[EndBattleCommand] Ошибка при расчете кубков: {e}")
