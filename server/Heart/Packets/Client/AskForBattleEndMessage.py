@@ -15,75 +15,84 @@ class AskForBattleEndMessage(PiranhaMessage):
     def encode(self, fields):
         pass
 
+    def safe_read_vint(self, default=0):
+        """Безопасное чтение VInt с возвратом значения по умолчанию при ошибке"""
+        try:
+            if self.offset >= len(self.messagePayload):
+                return default
+            return self.readVInt()
+        except Exception:
+            return default
+    
+    def safe_read_long(self, default=(0, 0)):
+        """Безопасное чтение Long с возвратом значения по умолчанию при ошибке"""
+        try:
+            if self.offset + 8 > len(self.messagePayload):
+                return default
+            return self.readLong()
+        except Exception:
+            return default
+    
+    def safe_read_boolean(self, default=False):
+        """Безопасное чтение Boolean с возвратом значения по умолчанию при ошибке"""
+        try:
+            if self.offset >= len(self.messagePayload):
+                return default
+            return self.readBoolean()
+        except Exception:
+            return default
+    
+    def safe_read_string(self, default=""):
+        """Безопасное чтение String с возвратом значения по умолчанию при ошибке"""
+        try:
+            if self.offset >= len(self.messagePayload):
+                return default
+            return self.readString()
+        except Exception:
+            return default
+
     def decode(self):
         fields = {}
         try:
-            # Читаем данные о результате битвы
-            # Добавляем проверки на конец потока данных
-            if self.offset < len(self.messagePayload):
-                fields["GameMode"] = self.readVInt()      # Режим игры
-            else:
-                fields["GameMode"] = 0
-                
-            if self.offset < len(self.messagePayload):
-                fields["Result"] = self.readVInt()        # Результат (0=поражение, 1=победа, 2=ничья)
-            else:
-                fields["Result"] = 0
-                
-            if self.offset < len(self.messagePayload):
-                fields["Rank"] = self.readVInt()          # Место в матче
-            else:
-                fields["Rank"] = 1
-                
-            if self.offset < len(self.messagePayload):
-                fields["BrawlerID"] = self.readVInt()     # ID бойца
-            else:
-                fields["BrawlerID"] = 0
-                
-            if self.offset < len(self.messagePayload):
-                fields["Unk1"] = self.readVInt()          # Неизвестное поле
-            else:
-                fields["Unk1"] = 0
-                
-            if self.offset < len(self.messagePayload):
-                fields["Unk2"] = self.readVInt()          # Неизвестное поле
-            else:
-                fields["Unk2"] = 0
+            # Читаем данные о результате битвы с безопасными методами
+            fields["GameMode"] = self.safe_read_vint(0)      # Режим игры
+            fields["Result"] = self.safe_read_vint(0)        # Результат (0=поражение, 1=победа, 2=ничья)
+            fields["Rank"] = self.safe_read_vint(1)          # Место в матче
+            fields["BrawlerID"] = self.safe_read_vint(0)     # ID бойца
+            fields["Unk1"] = self.safe_read_vint(0)          # Неизвестное поле
+            fields["Unk2"] = self.safe_read_vint(0)          # Неизвестное поле
             
             # Читаем количество игроков
-            if self.offset < len(self.messagePayload):
-                player_count = self.readVInt()
-            else:
-                player_count = 0
-                
+            player_count = self.safe_read_vint(0)
+            
             fields["Players"] = []
             for i in range(player_count):
-                if self.offset >= len(self.messagePayload):
+                try:
+                    player_data = {
+                        "AccountID": self.safe_read_long((0, 0)),
+                        "Team": self.safe_read_vint(0),
+                        "BrawlerID": self.safe_read_vint(0),
+                        "HasSkin": self.safe_read_boolean(False),
+                        "SkinID": self.safe_read_vint(0) if self.safe_read_boolean(False) else 0,
+                        "Name": self.safe_read_string(""),
+                        "Trophies": self.safe_read_vint(0),
+                        "IsAI": self.safe_read_boolean(False)
+                    }
+                    fields["Players"].append(player_data)
+                except Exception:
                     break
-                player_data = {
-                    "AccountID": self.readLong(),
-                    "Team": self.readVInt(),
-                    "BrawlerID": self.readVInt(),
-                    "HasSkin": self.readBoolean(),
-                    "SkinID": self.readVInt() if self.readBoolean() else 0,
-                    "Name": self.readString(),
-                    "Trophies": self.readVInt(),
-                    "IsAI": self.readBoolean()
-                }
-                fields["Players"].append(player_data)
         except Exception as e:
             print(f"[AskForBattleEndMessage] Ошибка при декодировании: {e}")
-            # Возвращаем значения по умолчанию при ошибке
-            if not fields:
-                fields = {
-                    "GameMode": 0,
-                    "Result": 0,
-                    "Rank": 1,
-                    "BrawlerID": 0,
-                    "Unk1": 0,
-                    "Unk2": 0,
-                    "Players": []
-                }
+            # Возвращаем значения по умолчанию при любой ошибке
+            fields = {
+                "GameMode": 0,
+                "Result": 0,
+                "Rank": 1,
+                "BrawlerID": 0,
+                "Unk1": 0,
+                "Unk2": 0,
+                "Players": []
+            }
         
         return fields
 
