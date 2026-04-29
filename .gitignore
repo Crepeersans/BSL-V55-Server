@@ -1,1 +1,1 @@
-Nothing needs to be added to .gitignore since the only change is a Python source file modification, which doesn't require any new ignore rules.
+Nothing should be ignored based on the provided file changes. The only modified file is a Python source code file (`server/Heart/Packets/Client/AskForBattleEndMessage.py`), which should not be added to .gitignore.
