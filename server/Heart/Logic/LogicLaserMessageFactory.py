@@ -15,6 +15,7 @@ from Heart.Packets.Server.LobbyInfoMessage import LobbyInfoMessage
 from Heart.Packets.Server.OwnHomeDataMessage import OwnHomeDataMessage
 from Heart.Packets.Server.KeepAliveServerMessage import KeepAliveServerMessage
 from Heart.Packets.Server.PlayerProfileMessage import PlayerProfileMessage
+from Heart.Packets.Server.BattleEndMessage import BattleEndMessage
 
 
 
@@ -37,6 +38,7 @@ class LogicLaserMessageFactory:
         24104: OutOfSyncMessage,
         24111: AvailableServerCommandMessage,
         24113: PlayerProfileMessage,
+        24115: BattleEndMessage,  # Сообщение окончания битвы
     }
 
     def getMessageName(messageType):

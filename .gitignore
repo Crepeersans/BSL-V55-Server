@@ -1,46 +1,17 @@
-```gitignore
-# Python
-__pycache__/
+# Compiled Python files
 *.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.pytest_cache/
-.mypy_cache/
-
-# Compiled and build artifacts
-*.o
-*.obj
-*.out
-*.dll
-*.so
-*.a
-*.class
+__pycache__/
 
 # Dependencies
-node_modules/
-target/
-.gradle/
+venv/
+.venv/
 
 # Logs and temp files
+*.log
 *.tmp
 *.swp
-*.swo
 
-# Environment
+# Environment files
 .env
 .env.local
 *.env.*
@@ -48,15 +19,17 @@ target/
 # Editors
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# System
-.DS_Store
-Thumbs.db
-
-# Coverage
+# Coverage reports
+.coverage
 coverage/
 htmlcov/
-*.coverage
-```
+
+# Build artifacts
+dist/
+build/
+target/
+
+# Python cache
+.mypy_cache/
+.pytest_cache/
