@@ -1,11 +1,9 @@
 from Heart.Commands.LogicCommand import LogicCommand
 from Heart.Logic.TrophySystem import TrophySystem
-# from Heart.Messaging import Messaging
-# from Heart.Packets.Server.AvailableServerCommandMessage import AvailableServerCommandMessage
 
 class EndBattleCommand(LogicCommand):
     """
-    Команда окончания битвы
+    СПОСОБ 2: Команда окончания битвы (ID 600)
     Обрабатывает результаты матча и начисляет/снимает кубки
     """
     def __init__(self, commandData):
@@ -40,16 +38,17 @@ class EndBattleCommand(LogicCommand):
 
     def execute(self, calling_instance, fields):
         """
-        Выполняет команду окончания битвы
+        СПОСОБ 2: Выполняет команду окончания битвы
         Рассчитывает и применяет изменение кубков
         """
+        print("=== СПОСОБ 2: EndBattleCommand (600) ===")
         client = calling_instance.client
         
         # Получаем игрока
         player = client.player if hasattr(client, 'player') else None
         
         if player is None:
-            print("[EndBattleCommand] Ошибка: игрок не найден")
+            print("[СПОСОБ 2] Ошибка: игрок не найден")
             return
         
         # Определяем режим игры
@@ -83,7 +82,7 @@ class EndBattleCommand(LogicCommand):
         
         mode = mode_map.get(game_mode, '3v3')
         
-        print(f"[EndBattleCommand] Режим: {mode}, Результат: {result}, Ранг: {rank}, Боец: {brawler_id}")
+        print(f"[СПОСОБ 2] Режим: {mode}, Результат: {result}, Ранг: {rank}, Боец: {brawler_id}")
         
         try:
             from DB.DatabaseHandler import DatabaseHandler
@@ -97,8 +96,8 @@ class EndBattleCommand(LogicCommand):
                 brawler_id=brawler_id if mode == '3v3' else None
             )
             
-            print(f"[EndBattleCommand] Изменение кубков: {trophy_data['change']}")
-            print(f"[EndBattleCommand] Старые кубки: {trophy_data['old_trophies']}, Новые кубки: {trophy_data['new_trophies']}")
+            print(f"[СПОСОБ 2] Изменение кубков: {trophy_data['change']}")
+            print(f"[СПОСОБ 2] Старые кубки: {trophy_data['old_trophies']}, Новые кубки: {trophy_data['new_trophies']}")
             
             # Обновляем кубки игрока
             player.Trophies = trophy_data['new_trophies']
@@ -118,10 +117,10 @@ class EndBattleCommand(LogicCommand):
             fields['OldTrophies'] = trophy_data['old_trophies']
             fields['NewTrophies'] = trophy_data['new_trophies']
             
-            print(f"[EndBattleCommand] Битва завершена успешно!")
+            print(f"[СПОСОБ 2] Битва завершена успешно!")
             
         except Exception as e:
-            print(f"[EndBattleCommand] Ошибка при расчете кубков: {e}")
+            print(f"[СПОСОБ 2] Ошибка при расчете кубков: {e}")
             import traceback
             traceback.print_exc()
 
