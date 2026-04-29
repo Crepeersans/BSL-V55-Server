@@ -2,7 +2,7 @@ from Heart.Commands.Client.PurchaseOfferCommand import PurchaseOfferCommand
 from Heart.Commands.Server.ChangeAvatarNameCommand import ChangeAvatarNameCommand
 from Heart.Commands.Client.SetPlayerThumbnailCommand import SetPlayerThumbnailCommand
 from Heart.Commands.Client.SetPlayerNameColorCommand import SetPlayerNameColorCommand
-from Heart.Commands.Client.EndBattleCommand import EndBattleCommand
+from Heart.Commands.Server.EndBattleCommand import EndBattleCommand
 
 class LogicCommandManager:
     commandsList = {

@@ -98,7 +98,7 @@ class AskForBattleEndMessage(PiranhaMessage):
 
     def execute(message, calling_instance, fields):
         """
-        Обрабатывает окончание битвы
+        Обрабатывает окончание битвы и отправляет результат клиенту
         """
         client = calling_instance.client
         player = client.player if hasattr(client, 'player') else None
@@ -141,6 +141,7 @@ class AskForBattleEndMessage(PiranhaMessage):
         
         try:
             from Heart.Logic.TrophySystem import TrophySystem
+            from DB.DatabaseHandler import DatabaseHandler
             
             # Применяем изменение кубков
             trophy_data = TrophySystem.apply_trophy_change(
@@ -154,6 +155,11 @@ class AskForBattleEndMessage(PiranhaMessage):
             print(f"[AskForBattleEndMessage] Изменение кубков: {trophy_data['change']}")
             print(f"[AskForBattleEndMessage] Старые кубки: {trophy_data['old_trophies']}, Новые кубки: {trophy_data['new_trophies']}")
             
+            # Обновляем кубки игрока
+            player.Trophies = trophy_data['new_trophies']
+            if player.Trophies > player.HighestTrophies:
+                player.HighestTrophies = player.Trophies
+            
             # Сохраняем данные игрока в базу
             db_instance = DatabaseHandler()
             player_data = player.getDataTemplate(player.ID[0], player.ID[1], player.Token)
@@ -162,27 +168,47 @@ class AskForBattleEndMessage(PiranhaMessage):
             player_data["OwnedBrawlers"] = player.OwnedBrawlers
             db_instance.updatePlayerData(player_data, type('', (), {'player': player})())
             
-            # Отправляем ответ клиенту с результатами
-            battle_end_fields = {
+            # Формируем данные игрока для отправки
+            player_result = {
+                'AccountID': player.ID,
+                'TrophyChange': trophy_data['change'],
+                'OldTrophies': trophy_data['old_trophies'],
+                'NewTrophies': trophy_data['new_trophies'],
+                'BrawlerID': brawler_id,
+                'BrawlerTrophyChange': trophy_data['change']
+            }
+            
+            # Отправляем BattleEndMessage (ID 24115)
+            battle_end_data = {
                 'Socket': client,
                 'GameMode': game_mode,
                 'Result': result_code,
                 'Rank': rank,
-                'Players': [{
-                    'AccountID': player.ID,
-                    'TrophyChange': trophy_data['change'],
-                    'OldTrophies': trophy_data['old_trophies'],
-                    'NewTrophies': trophy_data['new_trophies'],
-                    'BrawlerID': brawler_id,
-                    'BrawlerTrophyChange': trophy_data.get('change', 0)
-                }]
+                'Players': [player_result]
             }
             
-            # Отправляем BattleEndMessage
-            Messaging.sendMessage(24115, battle_end_fields)
+            Messaging.sendMessage(24115, battle_end_data)
+            print(f"[AskForBattleEndMessage] Отправлено BattleEndMessage (24115)")
             
-            # Отправляем LobbyInfoMessage для обновления UI
+            # Отправляем AvailableServerCommandMessage с командой обновления (ID 24111)
+            command_data = {
+                'Socket': client,
+                'CommandType': 600,  # EndBattleCommand
+                'GameMode': game_mode,
+                'Result': result_code,
+                'Rank': rank,
+                'BrawlerID': brawler_id,
+                'TrophyChange': trophy_data['change'],
+                'OldTrophies': trophy_data['old_trophies'],
+                'NewTrophies': trophy_data['new_trophies']
+            }
+            
+            Messaging.sendMessage(24111, command_data)
+            print(f"[AskForBattleEndMessage] Отправлено AvailableServerCommandMessage (24111)")
+            
+            # Отправляем LobbyInfoMessage для обновления UI лобби (ID 23457)
             Messaging.sendMessage(23457, {'Socket': client})
+            print(f"[AskForBattleEndMessage] Отправлено LobbyInfoMessage (23457)")
             
             print(f"[AskForBattleEndMessage] Битва завершена успешно!")
             
