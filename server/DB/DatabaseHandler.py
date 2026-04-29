@@ -1,10 +1,15 @@
 import json
 import sqlite3
 import traceback
+import os
+
+# Получаем абсолютный путь к директории с базой данных относительно этого файла
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "Files", "player.sqlite")
 
 class DatabaseHandler():
     def __init__(self):
-        self.conn = sqlite3.connect("DB/Files/player.sqlite")
+        self.conn = sqlite3.connect(DB_PATH)
         self.cursor = self.conn.cursor()
         try:
             self.cursor.execute("""CREATE TABLE main (ID int, Token text, Data json)""")
