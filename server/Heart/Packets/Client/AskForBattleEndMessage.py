@@ -103,6 +103,11 @@ class AskForBattleEndMessage(PiranhaMessage):
         """
         print("=== СПОСОБ 1: AskForBattleEndMessage (14166) ===")
         client = calling_instance.client
+        
+        # Отменяем таймер принудительного завершения, так как клиент прислал пакет
+        Messaging.cancel_battle_end_timer(client)
+        print("[СПОСОБ 1] Таймер отменен, получено сообщение от клиента")
+        
         player = client.player if hasattr(client, 'player') else None
         
         if player is None:
