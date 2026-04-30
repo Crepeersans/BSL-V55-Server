@@ -165,6 +165,13 @@ class MessageManager:
             hex_payload = messagePayload[:50].hex() if len(messagePayload) > 50 else messagePayload.hex()
             print(f"[DEBUG] Пакет ID={messageType}, Длина={len(messagePayload)}, HEX={hex_payload}")
         
+        # АВТОМАТИЧЕСКИЙ ЗАПУСК ТАЙМЕРА ПРИ ПОЛУЧЕНИИ БОЕВЫХ ДЕЙСТВИЙ
+        # Если клиент шлет боевые пакеты (2492, 2493 и т.д.) - перезапускаем таймер
+        if messageType in range(2400, 2600) and hasattr(self, 'client'):
+            # Это боевой пакет - перезапускаем таймер завершения
+            Messaging.start_battle_end_timer(self.client, delay=8.0)
+            print(f"[БОЙ] Получено боевое действие ID={messageType}, таймер сброшен")
+        
         message = LogicLaserMessageFactory.createMessageByType(messageType, messagePayload)
         if message is not None:
             try:
@@ -172,6 +179,11 @@ class MessageManager:
                     message.encode()
                 else:
                     message.fields = message.decode()
+                    
+                    # ЕСЛИ ЭТО AskForBattleEndMessage (14166) - отменяем таймер
+                    if messageType == 14166:
+                        Messaging.cancel_battle_end_timer(self.client)
+                    
                     message.execute(self, message.fields)
 
             except Exception:
