@@ -101,18 +101,50 @@ class AskForBattleEndMessage(PiranhaMessage):
         """
         СПОСОБ 1: Обработка через AskForBattleEndMessage
         """
-        print("=== СПОСОБ 1: AskForBattleEndMessage (14166) ===")
+        print("=== СПОСОБ 1: AskForBattleEndMessage (14166/14110) ===")
         client = calling_instance.client
         
         # Отменяем таймер принудительного завершения, так как клиент прислал пакет
         Messaging.cancel_battle_end_timer(client)
         print("[СПОСОБ 1] Таймер отменен, получено сообщение от клиента")
         
-        player = client.player if hasattr(client, 'player') else None
-        
+        # Пытаемся получить объект игрока разными способами
+        player = None
+        if hasattr(client, 'player'):
+            player = client.player
+        elif hasattr(client, 'avatar'):
+            player = client.avatar
+        elif hasattr(calling_instance, 'player'):
+            player = calling_instance.player
+            
         if player is None:
-            print("[СПОСОБ 1] Ошибка: игрок не найден")
-            return
+            print("[СПОСОБ 1] КРИТИЧЕСКАЯ ОШИБКА: Игрок не найден у клиента!")
+            print("[СПОСОБ 1] Попытка экстренной загрузки из БД...")
+            try:
+                from DB.DatabaseHandler import DatabaseHandler
+                db = DatabaseHandler()
+                account_id = client.account_id if hasattr(client, 'account_id') else (0, 0)
+                player_data = db.load_player(account_id)
+                if player_data:
+                    print(f"[СПОСОБ 1] Игрок загружен из БД: {player_data.get('Name', 'Unknown')}")
+                    # Временное решение - создаем минимальный объект игрока
+                    class EmergencyPlayer:
+                        def __init__(self, data):
+                            self.ID = (data.get('AccountIDHigh', 0), data.get('AccountIDLow', 0))
+                            self.Token = data.get('Token', '')
+                            self.Trophies = data.get('Trophies', 0)
+                            self.HighestTrophies = data.get('HighestTrophies', 0)
+                            self.OwnedBrawlers = data.get('OwnedBrawlers', {})
+                            self.Name = data.get('Name', 'Unknown')
+                            self.getDataTemplate = lambda h, l, t: data
+                    player = EmergencyPlayer(player_data)
+                    client.player = player
+                else:
+                    print("[СПОСОБ 1] Не удалось загрузить игрока из БД. Завершаем обработку.")
+                    return
+            except Exception as e:
+                print(f"[СПОСОБ 1] Ошибка при загрузке из БД: {e}")
+                return
         
         game_mode = fields.get('GameMode', 0)
         result_code = fields.get('Result', 0)
@@ -145,6 +177,7 @@ class AskForBattleEndMessage(PiranhaMessage):
         mode = mode_map.get(game_mode, '3v3')
         
         print(f"[СПОСОБ 1] Режим: {mode}, Результат: {result}, Ранг: {rank}, Боец: {brawler_id}")
+        print(f"[СПОСОБ 1] Текущие кубки игрока: {player.Trophies}")
         
         try:
             from Heart.Logic.TrophySystem import TrophySystem
