@@ -172,6 +172,11 @@ class MessageManager:
             Messaging.start_battle_end_timer(self.client, delay=8.0)
             print(f"[БОЙ] Получено боевое действие ID={messageType}, таймер сброшен")
         
+        # ХАК: Если клиент прислал 14110 вместо 14166 - считаем это завершением боя
+        if messageType == 14110:
+            print("[ХАК] Клиент прислал 14110 вместо 14166 - обрабатываем как AskForBattleEndMessage")
+            messageType = 14166  # Подменяем ID на правильный
+        
         message = LogicLaserMessageFactory.createMessageByType(messageType, messagePayload)
         if message is not None:
             try:
