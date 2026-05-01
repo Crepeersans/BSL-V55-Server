@@ -137,6 +137,11 @@ class AskForBattleEndMessage(PiranhaMessage):
                             self.OwnedBrawlers = data.get('OwnedBrawlers', {})
                             self.Name = data.get('Name', 'Unknown')
                             self.getDataTemplate = lambda h, l, t: data
+                            # Добавляем алиасы для совместимости
+                            self.trophies = self.Trophies
+                            self.highestTrophies = self.HighestTrophies
+                            self.ownedBrawlers = self.OwnedBrawlers
+                            self.name = self.Name
                     player = EmergencyPlayer(player_data)
                     client.player = player
                 else:

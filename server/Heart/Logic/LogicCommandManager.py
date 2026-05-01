@@ -3,6 +3,7 @@ from Heart.Commands.Server.ChangeAvatarNameCommand import ChangeAvatarNameComman
 from Heart.Commands.Client.SetPlayerThumbnailCommand import SetPlayerThumbnailCommand
 from Heart.Commands.Client.SetPlayerNameColorCommand import SetPlayerNameColorCommand
 from Heart.Commands.Server.EndBattleCommand import EndBattleCommand
+from Heart.Commands.Client.CreateGameModeCommand import CreateGameModeCommand
 
 class LogicCommandManager:
     commandsList = {
@@ -71,6 +72,7 @@ class LogicCommandManager:
         542: 'SelectGroupSkinCommand',
         571: 'OpenRandomCommand',
         600: EndBattleCommand,  # Команда окончания битвы с расчетом кубков
+        18: CreateGameModeCommand,  # Команда создания игры с выбором режима (Бравлбол, Награда и т.д.)
     }
 
     def getCommandsName(commandType):
